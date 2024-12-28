@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scholarships Database</title>
+    <title>Scholarships List</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -24,15 +24,36 @@
         h1 {
             color: #2c3e50;
         }
-        ul {
-            padding: 0;
-            list-style-type: none;
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
         }
-        ul li {
-            margin: 10px 0;
-            background: #f4f4f4;
-            padding: 10px;
+        table th, table td {
             border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        table th {
+            background-color: #2c3e50;
+            color: #fff;
+        }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .pagination button {
+            padding: 10px 15px;
+            margin: 0 5px;
+            border: none;
+            background-color: #2c3e50;
+            color: #fff;
+            cursor: pointer;
+        }
+        .pagination button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
         }
         footer {
             text-align: center;
@@ -46,7 +67,7 @@
 <body>
 
 <header>
-    <h1>Scholarships Database</h1>
+    <h1>Scholarships List</h1>
     <nav>
         <a href="index.html" style="color: #fff;">Home</a>
     </nav>
@@ -54,10 +75,27 @@
 
 <div class="container">
     <h2>Available Scholarships</h2>
-    <p>Explore a list of scholarships tailored to your profile and aspirations.</p>
-    <ul id="scholarship-list">
-        <!-- Scholarships will be dynamically loaded here -->
-    </ul>
+    <p>Explore a comprehensive list of scholarships tailored to your needs.</p>
+    <table id="scholarships-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Eligibility</th>
+                <th>Funding</th>
+                <th>Deadline</th>
+                <th>Level</th>
+                <th>Country</th>
+                <th>Website</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Scholarships will be dynamically loaded here -->
+        </tbody>
+    </table>
+    <div class="pagination" id="pagination-controls">
+        <button id="prev-page" disabled>Previous</button>
+        <button id="next-page">Next</button>
+    </div>
 </div>
 
 <footer>
@@ -65,33 +103,60 @@
 </footer>
 
 <script>
-    async function fetchScholarships() {
-        const response = await fetch("http://127.0.0.1:8000/scholarships/");
-        if (response.ok) {
-            const scholarships = await response.json();
-            const scholarshipList = document.getElementById("scholarship-list");
+    let currentPage = 1;
+    const itemsPerPage = 50;
 
-            scholarships.forEach(scholarship => {
-                const li = document.createElement("li");
-                li.innerHTML = `
-                    <h3>${scholarship.name}</h3>
-                    <p><strong>Eligibility:</strong> ${scholarship.eligibility_criteria}</p>
-                    <p><strong>Funding:</strong> ${scholarship.funding_details}</p>
-                    <p><strong>Deadline:</strong> ${scholarship.application_deadline}</p>
-                    <p><strong>Level:</strong> ${scholarship.study_level}</p>
-                    <p><strong>Country:</strong> ${scholarship.country}</p>
-                    <p><strong>University:</strong> ${scholarship.university_association || 'N/A'}</p>
-                    <p><strong>Link:</strong> <a href="${scholarship.application_link}" target="_blank">Apply Here</a></p>
-                `;
-                scholarshipList.appendChild(li);
-            });
-        } else {
-            alert("Failed to fetch scholarships. Please try again later.");
+    async function fetchScholarships(page) {
+        try {
+            const response = await fetch(`http://127.0.0.1:8001/scholarships?skip=${(page - 1) * itemsPerPage}&limit=${itemsPerPage}`);
+            if (response.ok) {
+                const scholarships = await response.json();
+                console.log("API Response:", scholarships); // Log the response
+
+                const tableBody = document.querySelector("#scholarships-table tbody");
+                tableBody.innerHTML = ""; // Clear existing rows
+
+                scholarships.forEach(scholarship => {
+                    console.log("Scholarship Data:", scholarship); // Log each scholarship
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${scholarship.name}</td>
+                        <td>${scholarship.eligibility_criteria}</td>
+                        <td>${scholarship.funding_details}</td>
+                        <td>${scholarship.application_deadline}</td>
+                        <td>${scholarship.study_level}</td>
+                        <td>${scholarship.country}</td>
+                        <td><a href="${scholarship.application_link}" target="_blank">Apply</a></td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+
+                // Update pagination controls
+                document.getElementById("prev-page").disabled = page === 1;
+                document.getElementById("next-page").disabled = scholarships.length < itemsPerPage;
+            } else {
+                console.error("Failed to fetch scholarships:", response.statusText);
+                alert("Failed to fetch scholarships. Please try again later.");
+            }
+        } catch (error) {
+            console.error("Error fetching scholarships:", error);
         }
     }
 
-    // Load scholarships when the page loads
-    window.onload = fetchScholarships;
+    document.getElementById("prev-page").addEventListener("click", () => {
+        if (currentPage > 1) {
+            currentPage--;
+            fetchScholarships(currentPage);
+        }
+    });
+
+    document.getElementById("next-page").addEventListener("click", () => {
+        currentPage++;
+        fetchScholarships(currentPage);
+    });
+
+    // Load the first page of scholarships when the page loads
+    window.onload = () => fetchScholarships(currentPage);
 </script>
 
 </body>
