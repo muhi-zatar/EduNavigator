@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scholarships Database</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #2c3e50;
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+        }
+        .container {
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+        }
+        ul {
+            padding: 0;
+            list-style-type: none;
+        }
+        ul li {
+            margin: 10px 0;
+            background: #f4f4f4;
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+        footer {
+            text-align: center;
+            padding: 10px;
+            background-color: #2c3e50;
+            color: #fff;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Scholarships Database</h1>
+    <nav>
+        <a href="index.html" style="color: #fff;">Home</a>
+    </nav>
+</header>
+
+<div class="container">
+    <h2>Available Scholarships</h2>
+    <p>Explore a list of scholarships tailored to your profile and aspirations.</p>
+    <ul id="scholarship-list">
+        <!-- Scholarships will be dynamically loaded here -->
+    </ul>
+</div>
+
+<footer>
+    <p>&copy; 2024 University Search Platform. All rights reserved.</p>
+</footer>
+
+<script>
+    async function fetchScholarships() {
+        const response = await fetch("http://127.0.0.1:8000/scholarships/");
+        if (response.ok) {
+            const scholarships = await response.json();
+            const scholarshipList = document.getElementById("scholarship-list");
+
+            scholarships.forEach(scholarship => {
+                const li = document.createElement("li");
+                li.innerHTML = `
+                    <h3>${scholarship.name}</h3>
+                    <p><strong>Eligibility:</strong> ${scholarship.eligibility_criteria}</p>
+                    <p><strong>Funding:</strong> ${scholarship.funding_details}</p>
+                    <p><strong>Deadline:</strong> ${scholarship.application_deadline}</p>
+                    <p><strong>Level:</strong> ${scholarship.study_level}</p>
+                    <p><strong>Country:</strong> ${scholarship.country}</p>
+                    <p><strong>University:</strong> ${scholarship.university_association || 'N/A'}</p>
+                    <p><strong>Link:</strong> <a href="${scholarship.application_link}" target="_blank">Apply Here</a></p>
+                `;
+                scholarshipList.appendChild(li);
+            });
+        } else {
+            alert("Failed to fetch scholarships. Please try again later.");
+        }
+    }
+
+    // Load scholarships when the page loads
+    window.onload = fetchScholarships;
+</script>
+
+</body>
+</html>
