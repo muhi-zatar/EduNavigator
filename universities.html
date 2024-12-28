@@ -24,15 +24,36 @@
         h1 {
             color: #2c3e50;
         }
-        ul {
-            padding: 0;
-            list-style-type: none;
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
         }
-        ul li {
-            margin: 10px 0;
-            background: #f4f4f4;
-            padding: 10px;
+        table th, table td {
             border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        table th {
+            background-color: #2c3e50;
+            color: #fff;
+        }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .pagination button {
+            padding: 10px 15px;
+            margin: 0 5px;
+            border: none;
+            background-color: #2c3e50;
+            color: #fff;
+            cursor: pointer;
+        }
+        .pagination button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
         }
         footer {
             text-align: center;
@@ -54,18 +75,77 @@
 
 <div class="container">
     <h2>Top Universities</h2>
-    <p>Explore a comprehensive list of universities across different countries and categories.</p>
-    <ul>
-        <li><b>University of Jordan:</b> Middle East's top university for humanities and tech.</li>
-        <li><b>American University in Cairo (AUC):</b> Excels in international programs and research.</li>
-        <li><b>King Fahd University of Petroleum and Minerals:</b> Renowned for engineering and science.</li>
-        <li><b>Qatar University:</b> Offers a wide range of programs and a modern campus.</li>
-    </ul>
+    <p>Explore a comprehensive list of universities across the world.</p>
+    <table id="universities-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Country</th>
+                <th>Website</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Universities will be dynamically loaded here -->
+        </tbody>
+    </table>
+    <div class="pagination" id="pagination-controls">
+        <button id="prev-page" disabled>Previous</button>
+        <button id="next-page">Next</button>
+    </div>
 </div>
 
 <footer>
     <p>&copy; 2024 University Search Platform. All rights reserved.</p>
 </footer>
+
+<script>
+    let currentPage = 1;
+    const itemsPerPage = 50;
+
+    async function fetchUniversities(page) {
+    const response = await fetch(`http://127.0.0.1:8000/universities?skip=${(page - 1) * itemsPerPage}&limit=${itemsPerPage}`);
+    if (response.ok) {
+        const universities = await response.json();
+        console.log(universities); // Log the response to the console
+        const tableBody = document.querySelector("#universities-table tbody");
+
+        tableBody.innerHTML = ""; // Clear existing rows
+
+        universities.forEach(university => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${university.name}</td>
+                <td>${university.country}</td>
+                <td><a href="${university.website}" target="_blank">Visit</a></td>
+            `;
+            tableBody.appendChild(row);
+        });
+
+        // Update pagination controls
+        document.getElementById("prev-page").disabled = page === 1;
+        document.getElementById("next-page").disabled = universities.length < itemsPerPage;
+    } else {
+        console.error("Failed to fetch universities");
+        alert("Failed to fetch universities. Please try again later.");
+    }
+}
+
+
+    document.getElementById("prev-page").addEventListener("click", () => {
+        if (currentPage > 1) {
+            currentPage--;
+            fetchUniversities(currentPage);
+        }
+    });
+
+    document.getElementById("next-page").addEventListener("click", () => {
+        currentPage++;
+        fetchUniversities(currentPage);
+    });
+
+    // Load the first page of universities when the page loads
+    window.onload = () => fetchUniversities(currentPage);
+</script>
 
 </body>
 </html>
