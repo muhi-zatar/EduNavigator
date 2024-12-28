@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>University Acceptance Probability</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #2c3e50;
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+        }
+        .container {
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+        }
+        ul {
+            padding: 0;
+            list-style-type: none;
+        }
+        ul li {
+            margin: 10px 0;
+            background: #f4f4f4;
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+        footer {
+            text-align: center;
+            padding: 10px;
+            background-color: #2c3e50;
+            color: #fff;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>University Acceptance Probability</h1>
+    <nav>
+        <a href="index.html" style="color: #fff;">Home</a>
+    </nav>
+</header>
+
+<div class="container">
+    <h2>Calculate Your Chances</h2>
+    <p>Estimate the probability of getting accepted to your desired university based on your credentials.</p>
+    <form id="acceptance-form">
+        <label for="gpa">GPA:</label>
+        <input type="number" id="gpa" name="gpa" placeholder="Enter your GPA" required>
+    
+        <label for="test-scores">Test Scores:</label>
+        <input type="number" id="test-scores" name="test-scores" placeholder="Enter your test scores" required>
+    
+        <label for="extracurricular">Extracurricular Activities:</label>
+        <textarea id="extracurricular" name="extracurricular" placeholder="Describe your activities" required></textarea>
+    
+        <button type="submit">Calculate</button>
+    </form>
+    
+    <script>
+        const form = document.getElementById("acceptance-form");
+        const result = document.createElement("h3");
+        document.querySelector(".container").appendChild(result);
+    
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+    
+            const gpa = document.getElementById("gpa").value;
+            const testScores = document.getElementById("test-scores").value;
+            const extracurricular = document.getElementById("extracurricular").value;
+    
+            const response = await fetch("http://127.0.0.1:8000/calculate-acceptance/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ gpa, test_scores: testScores, extracurricular }),
+            });
+    
+            if (response.ok) {
+                const data = await response.json();
+                result.textContent = `Your acceptance probability is: ${data.acceptance_probability}`;
+            } else {
+                result.textContent = "Error calculating acceptance probability. Please try again.";
+            }
+        });
+    </script>    
+
+<footer>
+    <p>&copy; 2024 University Search Platform. All rights reserved.</p>
+</footer>
+
+</body>
+</html>
