@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel
 from typing import List, Optional
+from datetime import datetime
 from sqlalchemy import create_engine, Column, Integer, String, Text, Date
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
@@ -76,9 +77,10 @@ def create_scholarship(scholarship: ScholarshipCreate, db: Session = Depends(get
     db.refresh(db_scholarship)
     return db_scholarship
 
-@app.get("/scholarships/", response_model=List[ScholarshipResponse])
+@app.get("/scholarships/", response_model=None)
 def list_scholarships(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
     scholarships = db.query(Scholarship).offset(skip).limit(limit).all()
+    print(scholarships)  # Debug log
     return scholarships
 
 @app.get("/scholarships/{scholarship_id}", response_model=ScholarshipResponse)
@@ -94,27 +96,45 @@ def populate_synthesis_data():
     db = SessionLocal()
     if not db.query(Scholarship).first():
         sample_scholarships = [
-            Scholarship(
-                name="Middle East STEM Scholarship",
-                eligibility_criteria="Minimum GPA of 3.0, residents of Middle East",
-                funding_details="Full tuition, travel expenses covered",
-                application_deadline="2024-12-31",
-                study_level="Undergraduate",
-                country="United Arab Emirates",
-                university_association="University of Dubai",
-                application_link="https://example.com/apply"
-            ),
-            Scholarship(
-                name="Women in Tech Fellowship",
-                eligibility_criteria="Female students pursuing a Master's in Computer Science",
-                funding_details="$10,000 yearly stipend",
-                application_deadline="2024-11-15",
-                study_level="Graduate",
-                country="Jordan",
-                university_association="",
-                application_link="https://example.com/wit"
-            ),
+            {
+                "name": "Middle East STEM Scholarship",
+                "eligibility_criteria": "Minimum GPA of 3.0, residents of Middle East",
+                "funding_details": "Full tuition, travel expenses covered",
+                "application_deadline": "2024-12-31",
+                "study_level": "Undergraduate",
+                "country": "United Arab Emirates",
+                "university_association": "University of Dubai",
+                "application_link": "https://example.com/apply",
+            },
+            {
+                "name": "Women in Tech Fellowship",
+                "eligibility_criteria": "Female students pursuing a Master's in Computer Science",
+                "funding_details": "$10,000 yearly stipend",
+                "application_deadline": "2024-11-15",
+                "study_level": "Graduate",
+                "country": "Jordan",
+                "university_association": "",
+                "application_link": "https://example.com/wit",
+            },
         ]
-        db.bulk_save_objects(sample_scholarships)
+
+        for scholarship_data in sample_scholarships:
+            scholarship = Scholarship(
+                name=scholarship_data["name"],
+                eligibility_criteria=scholarship_data["eligibility_criteria"],
+                funding_details=scholarship_data["funding_details"],
+                application_deadline=datetime.strptime(
+                    scholarship_data["application_deadline"], "%Y-%m-%d"
+                ).date(),  # Convert to datetime.date
+                study_level=scholarship_data["study_level"],
+                country=scholarship_data["country"],
+                university_association=scholarship_data["university_association"],
+                application_link=scholarship_data["application_link"],
+            )
+            db.add(scholarship)
+
         db.commit()
     db.close()
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("scholarship_service:app", host="0.0.0.0", port=8001, reload=True)
